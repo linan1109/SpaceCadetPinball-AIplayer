@@ -4,6 +4,7 @@ import numpy as np
 import time
 import pyautogui
 import pywinauto
+from Number import Number
 
 class Frames(object):
     def __init__(self):
@@ -18,12 +19,21 @@ class Frames(object):
         
         self.frame = None
         self.FPS = 30
+        self.Number_fun = Number()
+        self.monitor = None
+        self.WindowSize = (640, 480)
+        
+    def oneFrame(self):
+        img, monitor = self.getFrame()
+        img = self.getBallContous()
+        # score = self.recScore()
+        return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height']
+        
     
     def running(self):
         fps = self.FPS
         while True:
-            self.getFrame()
-            img = self.getBallContous()
+            img, _, _, _, _ = self.oneFrame()
             cv.imshow('test', img)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 cv.destroyAllWindows()
@@ -40,6 +50,7 @@ class Frames(object):
         # change it into a dictionary
         coordinates = {'top': coordinates.top, 'left': coordinates.left, 'width': coordinates.width(), 'height': coordinates.height()}
         # print(coordinates)
+        self.monitor = coordinates
         return coordinates
     
     def getFrame(self):
@@ -48,10 +59,48 @@ class Frames(object):
         sct_img = self.sct.grab(monitor)
         # convert to numpy array
         img = np.array(sct_img)
-        # convert from BGR to RGB
-        img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        
+        # get the inside of the game window
+        grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        contours, hierarchy = cv.findContours(grey, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        # select contours area > 50
+        contours = [c for c in contours if cv.contourArea(c) > 50]
+        # if width > height
+        if len(contours) > 4:
+            # sort the contours by y
+            contours = sorted(contours, key=lambda x: cv.boundingRect(x)[1])
+
+            if monitor['width'] / monitor['height'] > 640/480:
+                cv.drawContours(img, contours, -1, (0, 255, 0), 3)
+                
+                x, y, w, h = cv.boundingRect(contours[1])
+                top = y
+                bottom = y + h
+                
+                x, y, w, h = cv.boundingRect(contours[3])
+                right = x + w
+                
+                x, y, w, h = cv.boundingRect(contours[2])
+                left = x + w - int((bottom - top) * 0.17)
+                
+                if right - left > 0 and bottom - top > 0:
+                    img = img[top:bottom, left:right]
+            else:
+                x, y, w, h = cv.boundingRect(contours[3])
+                right = x + w
+                
+                x, y, w, h = cv.boundingRect(contours[2])
+                left = x
+                top = y
+                bottom = y + h
+                
+                if right - left > 0 and bottom - top > 0:
+                    img = img[top:bottom, left:right]
+            
+        # resize the image
+        img = cv.resize(img, self.WindowSize)
         self.frame = img
-        return img
+        return img, monitor
     
     def getBallContous(self):
         img = self.frame
@@ -103,6 +152,7 @@ class Frames(object):
                 # draw the velocity vector
                 cv.arrowedLine(img, (self.x, self.y), (self.x + self.v_x, self.y + self.v_y), (255, 0, 0), 2)
         return img
+
 
 
 
