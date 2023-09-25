@@ -16,6 +16,7 @@ class Frames(object):
         self.v_y = 0
         self.last_x = 0
         self.last_y = 0
+        self.score = 0
         
         self.frame = None
         self.FPS = 30
@@ -28,13 +29,15 @@ class Frames(object):
         img, monitor = self.getFrame()
         img = self.getBallContous()
         score = self.recScore()
-        return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height']
+        if score > self.score: 
+            self.score = score
+        return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height'], self.score
         
     
     def running(self):
         fps = self.FPS
         while True:
-            img, _, _, _, _ = self.oneFrame()
+            img, _, _, _, _, _ = self.oneFrame()
             cv.imshow('test', img)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 cv.destroyAllWindows()
@@ -60,6 +63,7 @@ class Frames(object):
         sct_img = self.sct.grab(monitor)
         # convert to numpy array
         img = np.array(sct_img)
+        img = cv.cvtColor(img, cv.COLOR_BGRA2BGR)
         
         # get the inside of the game window
         grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -110,7 +114,7 @@ class Frames(object):
         mask = cv.inRange(hsv, lower, upper)
         result = cv.bitwise_and(img, img, mask=mask)
         # convert to grayscale
-        result = cv.cvtColor(result, cv.COLOR_RGB2GRAY)
+        result = cv.cvtColor(result, cv.COLOR_BGR2GRAY)
 
         # find the changes
         if self.lastFrame is None:
@@ -156,29 +160,22 @@ class Frames(object):
     def recScore(self):
         # find all the numbers
         img = self.frame
-        result = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
-        # find the contours
-        contours, hierarchy = cv.findContours(result, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        # selest w >50 and w <150 and most right
-        contours = [c for c in contours if cv.boundingRect(c)[2] > 50 and cv.boundingRect(c)[2] < 150]
-        if len(contours) > 0:
-            contour = sorted(contours, key=lambda x: cv.boundingRect(x)[0], reverse=True)[0]
-            # draw the contour
-            x, y, w, h = cv.boundingRect(contour)
-            cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        (x, y, w, h) = (482, 229, 136, 23)
+        # cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
+        length_of_number = 15
+        space = [4,4,6,8,10,10,12,14]
+        score = 0
+        for i in range(8):
+            number_img = img[y:y + h, x + (length_of_number) * i  + space[i] :x + (length_of_number ) * i + length_of_number + space[i]]
+            digit = self.Number_fun.compare(number_img)
+            # cv.rectangle(img, (x + (length_of_number) * i  + space[i], y), (x + (length_of_number ) * i + length_of_number + space[i], y + h), (0, 255, 255), 1)
+            score = score * 10 + digit
+
+        # draw the score    
+        cv.putText(img, str(score), (x, y + h + 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        return score
         
         
-       
-
-    def getDigit(self, number):
-        # convert the number into a digit
-        img = self.frame
-        x, y, w, h = number
-        # crop the image
-        img = img[y:y+h, x:x+w]
-        digit = self.Number_fun.compare(img)
-        return digit
-
 if __name__ == "__main__":
     frames = Frames()
     frames.running()
