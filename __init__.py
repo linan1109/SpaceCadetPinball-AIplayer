@@ -1,2 +1,2 @@
-from Number import Number
+from Pattern import Number, StartsNewGame
 from Frame import Frame

@@ -4,7 +4,7 @@ import numpy as np
 import time
 import pyautogui
 import pywinauto
-from Number import Number
+from Pattern import Number, Words
 
 class Frames(object):
     def __init__(self):
@@ -24,6 +24,7 @@ class Frames(object):
         self.WindowSize = (640, 480)
         
         self.Number_fun = Number()
+        self.Words_fun = Words()
         
     def oneFrame(self):
         img, monitor = self.getFrame()
@@ -31,6 +32,7 @@ class Frames(object):
         score = self.recScore()
         if score > self.score: 
             self.score = score
+        self.stageChange()
         return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height'], self.score
         
     
@@ -168,13 +170,21 @@ class Frames(object):
         for i in range(8):
             number_img = img[y:y + h, x + (length_of_number) * i  + space[i] :x + (length_of_number ) * i + length_of_number + space[i]]
             digit = self.Number_fun.compare(number_img)
-            # cv.rectangle(img, (x + (length_of_number) * i  + space[i], y), (x + (length_of_number ) * i + length_of_number + space[i], y + h), (0, 255, 255), 1)
+            cv.rectangle(img, (x + (length_of_number) * i  + space[i], y), (x + (length_of_number ) * i + length_of_number + space[i], y + h), (0, 255, 255), 1)
             score = score * 10 + digit
 
         # draw the score    
-        cv.putText(img, str(score), (x, y + h + 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv.putText(img, str(score), (x, y - 5), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         return score
         
+    def stageChange(self):
+        img = self.frame
+        stage = self.Words_fun.compare(img)
+        if stage > 0:
+            print("stage: ", stage)
+        return stage
+        
+
         
 if __name__ == "__main__":
     frames = Frames()
