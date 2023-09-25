@@ -4,7 +4,6 @@ import numpy as np
 import time
 import pyautogui
 import pywinauto
-from Number import Number
 
 class Frames(object):
     def __init__(self):
@@ -19,7 +18,6 @@ class Frames(object):
         
         self.frame = None
         self.FPS = 30
-        self.Number_fun = Number()
         self.monitor = None
         self.WindowSize = (640, 480)
         
@@ -71,8 +69,6 @@ class Frames(object):
             contours = sorted(contours, key=lambda x: cv.boundingRect(x)[1])
 
             if monitor['width'] / monitor['height'] > 640/480:
-                cv.drawContours(img, contours, -1, (0, 255, 0), 3)
-                
                 x, y, w, h = cv.boundingRect(contours[1])
                 top = y
                 bottom = y + h
