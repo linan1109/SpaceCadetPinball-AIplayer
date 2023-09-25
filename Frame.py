@@ -4,6 +4,7 @@ import numpy as np
 import time
 import pyautogui
 import pywinauto
+from Number import Number
 
 class Frames(object):
     def __init__(self):
@@ -21,10 +22,12 @@ class Frames(object):
         self.monitor = None
         self.WindowSize = (640, 480)
         
+        self.Number_fun = Number()
+        
     def oneFrame(self):
         img, monitor = self.getFrame()
         img = self.getBallContous()
-        # score = self.recScore()
+        score = self.recScore()
         return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height']
         
     
@@ -150,7 +153,31 @@ class Frames(object):
         return img
 
 
+    def recScore(self):
+        # find all the numbers
+        img = self.frame
+        result = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+        # find the contours
+        contours, hierarchy = cv.findContours(result, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        # selest w >50 and w <150 and most right
+        contours = [c for c in contours if cv.boundingRect(c)[2] > 50 and cv.boundingRect(c)[2] < 150]
+        if len(contours) > 0:
+            contour = sorted(contours, key=lambda x: cv.boundingRect(x)[0], reverse=True)[0]
+            # draw the contour
+            x, y, w, h = cv.boundingRect(contour)
+            cv.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        
+        
+       
 
+    def getDigit(self, number):
+        # convert the number into a digit
+        img = self.frame
+        x, y, w, h = number
+        # crop the image
+        img = img[y:y+h, x:x+w]
+        digit = self.Number_fun.compare(img)
+        return digit
 
 if __name__ == "__main__":
     frames = Frames()
