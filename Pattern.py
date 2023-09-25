@@ -39,6 +39,9 @@ class Words(object):
         
         self.pattern_ball_at_start = cv.imread('./patterns/BallAtStart.png', cv.IMREAD_GRAYSCALE)
         self.location_ball_at_start = (341, 423, 21, 21)
+        
+        self.pattern_game_over = cv.imread('./patterns/GameOver.png', cv.IMREAD_GRAYSCALE)
+        self.location_game_over = (430, 270, 160, 35)
 
     def compare(self, img):
         grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -55,6 +58,14 @@ class Words(object):
         # print("pattern_ball_at_start: ", sim)
         if sim > 0.5:
             return 2
+        
+        
+        part = grey[self.location_game_over[1]:self.location_game_over[1] + self.location_game_over[3],
+                    self.location_game_over[0]:self.location_game_over[0] + self.location_game_over[2]]
+        sim = metrics.structural_similarity(self.pattern_game_over, part, full=True)[0]
+        print("pattern_game_over: ", sim)
+        if sim > 0.5:
+            return 3
         
         
         return 0

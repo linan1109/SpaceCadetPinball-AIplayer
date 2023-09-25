@@ -19,7 +19,6 @@ class Frames(object):
         self.score = 0
         
         self.frame = None
-        self.FPS = 30
         self.monitor = None
         self.WindowSize = (640, 480)
         
@@ -35,17 +34,6 @@ class Frames(object):
         self.stageChange()
         return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height'], self.score
         
-    
-    def running(self):
-        fps = self.FPS
-        while True:
-            img, _, _, _, _, _ = self.oneFrame()
-            cv.imshow('test', img)
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                cv.destroyAllWindows()
-                break
-            time.sleep(1/fps)
-    
     def getWindowCoord(self):
         # find the game window
         hwnd = pywinauto.findwindows.find_windows(title='3D Pinball for Windows - Space Cadet')[0]
@@ -183,11 +171,5 @@ class Frames(object):
         if stage > 0:
             print("stage: ", stage)
         return stage
-        
 
-        
-if __name__ == "__main__":
-    frames = Frames()
-    frames.running()
-        
     
