@@ -29,10 +29,10 @@ class Frames(object):
         img, monitor = self.getFrame()
         img = self.getBallContous()
         score = self.recScore()
-        if score > self.score: 
-            self.score = score
-        self.stageChange()
-        return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height'], self.score
+        # if score > self.score: 
+        #     self.score = score
+        stage = self.stageChange()
+        return img, self.x/monitor['width'], self.y/monitor['height'], self.v_x/monitor['width'], self.v_y/monitor['height'], self.score, stage
         
     def getWindowCoord(self):
         # find the game window
@@ -172,4 +172,10 @@ class Frames(object):
             print("stage: ", stage)
         return stage
 
-    
+    def findCancel(self):
+        loc = self.Words_fun.findCancel(self.frame)
+        x = self.monitor['left'] + loc[0]
+        y = self.monitor['top'] + loc[1]
+        print(x, y)
+        # click the cancel button
+        pyautogui.click(x, y)

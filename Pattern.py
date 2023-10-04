@@ -42,6 +42,8 @@ class Words(object):
         
         self.pattern_game_over = cv.imread('./patterns/GameOver.png', cv.IMREAD_GRAYSCALE)
         self.location_game_over = (430, 270, 160, 35)
+        
+        self.pattern_cancel = cv.imread('./patterns/Cancel.png', cv.IMREAD_GRAYSCALE)
 
     def compare(self, img):
         grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -63,9 +65,25 @@ class Words(object):
         part = grey[self.location_game_over[1]:self.location_game_over[1] + self.location_game_over[3],
                     self.location_game_over[0]:self.location_game_over[0] + self.location_game_over[2]]
         sim = metrics.structural_similarity(self.pattern_game_over, part, full=True)[0]
-        print("pattern_game_over: ", sim)
+        # print("pattern_game_over: ", sim)
         if sim > 0.5:
             return 3
         
-        
         return 0
+    
+    def findCancel(self, img):
+        grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        # find cancel button location
+        res = cv.matchTemplate(grey, self.pattern_cancel, cv.TM_CCOEFF_NORMED)
+        threshold = 0.1
+        loc = np.where(res >= threshold)
+        # find the best match
+        best_match = 0
+        best_location = None
+        for pt in zip(*loc[::-1]):
+            if res[pt[1]][pt[0]] > best_match:
+                best_match = res[pt[1]][pt[0]]
+                best_location = pt
+                
+        if best_location is not None:
+            return best_location[0] + self.pattern_cancel.shape[1] // 2, best_location[1] + self.pattern_cancel.shape[0] // 2
