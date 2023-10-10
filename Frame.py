@@ -4,6 +4,7 @@ import numpy as np
 import time
 import pyautogui
 import pywinauto
+from pywinauto import mouse
 from Pattern import Number, Words
 
 class Frames(object):
@@ -38,9 +39,9 @@ class Frames(object):
         # find the game window
         hwnd = pywinauto.findwindows.find_windows(title='3D Pinball for Windows - Space Cadet')[0]
         # get the game window
-        gameWindow = pywinauto.application.Application().connect(handle=hwnd)
+        self.gameWindow = pywinauto.application.Application().connect(handle=hwnd)
         # get the game window coordinates
-        coordinates = gameWindow.window(handle=hwnd).rectangle()
+        coordinates = self.gameWindow.window(handle=hwnd).rectangle()
         # change it into a dictionary
         coordinates = {'top': coordinates.top, 'left': coordinates.left, 'width': coordinates.width(), 'height': coordinates.height()}
         # print(coordinates)
@@ -173,9 +174,29 @@ class Frames(object):
         return stage
 
     def findCancel(self):
-        loc = self.Words_fun.findCancel(self.frame)
-        x = self.monitor['left'] + loc[0]
-        y = self.monitor['top'] + loc[1]
-        print(x, y)
-        # click the cancel button
-        pyautogui.click(x, y)
+        locs = self.Words_fun.findCancel(self.frame)
+        
+        # change locs in img to locs in monitor 
+        left = self.monitor['left']
+        top = self.monitor['top']
+        width = self.monitor['width']
+        height = self.monitor['height']
+        
+        width_ratio = width / self.WindowSize[0]
+        height_ratio = height / self.WindowSize[1]
+        
+        # for loc in locs:
+        #     x = left + int(loc[0] * width_ratio)
+        #     y = top + int(loc[1] * height_ratio)
+        #     mouse.click(button='left', coords=(x, y))
+        #     print("click",loc[0], loc[1], x, y)
+        #     time.sleep(0.1)
+            
+        
+        for i in range(left, left + 50, 10):
+            for j in range(top + height - 50, top + height, 10):
+                print(i, j)
+                mouse.click(button='left', coords=(i, j))
+                # time.sleep(0.01)
+        
+    

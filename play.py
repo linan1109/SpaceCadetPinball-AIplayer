@@ -34,9 +34,11 @@ def play(model=None):
     frame = Frames()
     try:
         fps = FPS
-        score = 0
+        bestscore = 0
         while True:
             img, x, y, vx, vy, score, stage = frame.oneFrame()
+            if score > bestscore:
+                bestscore = score
             cv.imshow('test', img)
             if stage == 1:
                 # game to restart
@@ -49,7 +51,7 @@ def play(model=None):
                 time.sleep(5)
                 img, x, y, vx, vy, score, stage = frame.oneFrame()
                 frame.findCancel()
-                return score
+                return bestscore
             else:
                 # real play
                 left, right = model.predict(x, y, vx, vy)

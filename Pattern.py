@@ -75,15 +75,8 @@ class Words(object):
         grey = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
         # find cancel button location
         res = cv.matchTemplate(grey, self.pattern_cancel, cv.TM_CCOEFF_NORMED)
-        threshold = 0.1
+        threshold = 0.01
         loc = np.where(res >= threshold)
-        # find the best match
-        best_match = 0
-        best_location = None
-        for pt in zip(*loc[::-1]):
-            if res[pt[1]][pt[0]] > best_match:
-                best_match = res[pt[1]][pt[0]]
-                best_location = pt
-                
-        if best_location is not None:
-            return best_location[0] + self.pattern_cancel.shape[1] // 2, best_location[1] + self.pattern_cancel.shape[0] // 2
+        # return all x, y
+        return loc[::-1]
+        

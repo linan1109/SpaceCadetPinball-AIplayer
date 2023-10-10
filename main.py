@@ -14,7 +14,9 @@ class Main:
     def runGeneAlo(self):
         score, gen, id = ModelController().genetic_algorithm()
         print(f"Best score: {score}, generation: {gen}, id: {id}")
-        
+        # log the result
+        with open("log.txt", "a") as f:
+            f.write(f"Best score: {score}, generation: {gen}, id: {id}\n")
     
 if __name__ == '__main__':
     main = Main()
