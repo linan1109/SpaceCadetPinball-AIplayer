@@ -12,7 +12,7 @@ def playWithOutModel():
         score = 0
         while True:
             img, x, y, vx, vy, score, stage = frame.oneFrame()
-            cv.imshow('test', img)
+            cv.imshow('playing', img)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 cv.destroyAllWindows()
                 break
@@ -39,7 +39,7 @@ def play(model=None):
             img, x, y, vx, vy, score, stage = frame.oneFrame()
             if score > bestscore:
                 bestscore = score
-            print("score", bestscore)
+            # print("score", bestscore)
             cv.imshow('playing', img)
             if stage == 1:
                 # game to restart

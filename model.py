@@ -36,7 +36,7 @@ class ModelController(object):
             # save models and score
             for i in range(num_best_players):
                 torch.save(population[i].state_dict(), "./models/model_" + str(generation) + "_" + str(i) + "_" + ".pt")
-                with open("./models/score.txt", "a") as f:
+                with open("./log/scores.txt", "a") as f:
                     f.write("./models/model_" + str(generation) + "_" + str(i) + ":" + str(score_list[i]) + "\n")
                 if score_list[i] > bset_score:
                     bset_score = score_list[i]

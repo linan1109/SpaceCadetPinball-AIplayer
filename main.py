@@ -12,7 +12,12 @@ class Main:
         play(model)
     
     def runGeneAlo(self):
-        score, gen, id = ModelController().genetic_algorithm()
+        score, gen, id = ModelController().genetic_algorithm(
+            generation=30,
+            population_size=10,
+            num_best_players=5,
+            num_parents=3
+        )
         print(f"Best score: {score}, generation: {gen}, id: {id}")
         # log the result
         with open("log.txt", "a") as f:
@@ -21,5 +26,6 @@ class Main:
 if __name__ == '__main__':
     main = Main()
     # model = loadModel()
-    # main.runningWithModel(None)
-    main.runGeneAlo()
+    # main.runningWithModel(model)
+    main.runningWithModel(None)
+    # main.runGeneAlo()
