@@ -32,17 +32,19 @@ def play(model=None):
         return playWithOutModel()
     keyboard = Controller()
     frame = Frames()
+    fps = FPS
+    bestscore = 0
     try:
-        fps = FPS
-        bestscore = 0
         while True:
             img, x, y, vx, vy, score, stage = frame.oneFrame()
             if score > bestscore:
                 bestscore = score
-            cv.imshow('test', img)
+            print("score", bestscore)
+            cv.imshow('playing', img)
             if stage == 1:
                 # game to restart
                 restart()
+                bestscore = 0
             elif stage == 2:
                 # ball at start, press space to start
                 start()
@@ -84,7 +86,7 @@ def play(model=None):
     finally:
         cv.destroyAllWindows()
         pass
-    return score
+    return bestscore
     
 def start():
     keyboard = Controller()

@@ -52,12 +52,14 @@ class ModelController(object):
                     parents = self.select_parents(population, num_parents)
                     # average the weights of the parents and add some noise
                     child = self.create_chromosome()
+                    # set the weights of the child to small random noise
                     for param in child.parameters():
-                        param.requires_grad = False
-                        for parent in parents:
-                            param.data += parent.parameters()
-                        param.data /= len(parents)
-                        param.data += torch.randn_like(param) * 0.05
+                        param.data = param.data + torch.randn_like(param) * 0.0005
+                    # average the weights of the parents
+                    for parent in parents:
+                        for child_param, parent_param in zip(child.parameters(), parent.parameters()):
+                            child_param.data = child_param.data + parent_param.data / num_parents
+                    
                     new_population.append(child)
             population = new_population
             
@@ -67,6 +69,7 @@ class ModelController(object):
     def evaluate_fitness(self, chromosome):
         # play the game with the chromosome
         score = play(chromosome)
+        print("final score: ", score)
         return score
     
     def initialize_population(self, population_size):
@@ -77,7 +80,7 @@ class ModelController(object):
         model = PlayModel(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
         for param in model.parameters():
             param.requires_grad = False
-            param.data = torch.randn_like(param)
+            param.data = torch.randn_like(param) * 0.1
         return model
     
     def select_parents(self, population, num_parents):

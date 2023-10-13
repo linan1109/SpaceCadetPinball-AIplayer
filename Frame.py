@@ -29,7 +29,7 @@ class Frames(object):
     def oneFrame(self):
         img, monitor = self.getFrame()
         img = self.getBallContous()
-        score = self.recScore()
+        self.score = self.recScore()
         # if score > self.score: 
         #     self.score = score
         stage = self.stageChange()
