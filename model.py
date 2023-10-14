@@ -19,7 +19,7 @@ class ModelController(object):
     def __init__(self) -> None:
         self.model = PlayModel(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
         
-    def genetic_algorithm(self, num_generations=10, population_size=8, num_best_players=5, num_parents=5):
+    def genetic_algorithm(self, num_generations=50, population_size=8, num_best_players=5, num_parents=3):
         population = self.initialize_population(population_size)
         bset_score = 0
         best_generation = 0
@@ -52,14 +52,18 @@ class ModelController(object):
                     parents = self.select_parents(population, num_parents)
                     # average the weights of the parents and add some noise
                     child = self.create_chromosome()
-                    # set the weights of the child to small random noise
+                    # set the weights of the child to 0
                     for param in child.parameters():
-                        param.data = param.data + torch.randn_like(param) * 0.0005
+                        param.requires_grad = False
+                        param.data = torch.zeros_like(param)
                     # average the weights of the parents
                     for parent in parents:
                         for child_param, parent_param in zip(child.parameters(), parent.parameters()):
                             child_param.data = child_param.data + parent_param.data / num_parents
-                    
+                    # add some noise
+                    for param in child.parameters():
+                        param.requires_grad = False
+                        param.data = param.data * (1 + torch.randn_like(param) * 0.003)
                     new_population.append(child)
             population = new_population
             
