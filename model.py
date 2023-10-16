@@ -50,28 +50,32 @@ class ModelController(object):
                 for _ in range(population_size):
                     # randomly select parents
                     parents = self.select_parents(population, num_parents)
-                    # average the weights of the parents and add some noise
                     child = self.create_chromosome()
-                    # set the weights of the child to 0
                     for param in child.parameters():
                         param.requires_grad = False
                         param.data = torch.zeros_like(param)
-                    # average the weights of the parents
-                    for parent in parents:
-                        for child_param, parent_param in zip(child.parameters(), parent.parameters()):
-                            child_param.data = child_param.data + parent_param.data / num_parents
+                    random_list = [random.random() for _ in range(num_parents)]
+                    # softmax random_list to make it a probability distribution and sum to 1
+                    random_list = torch.softmax(torch.tensor(random_list), dim=-1)
+                    # and the bigger the score, the bigger the probability to be selected
+                    random_list, _ = torch.sort(random_list, descending=True)                    
+                    # for parent in parents:
+                        # for child_param, parent_param in zip(child.parameters(), parent.parameters()):
+                            # child_param.data = child_param.data + parent_param.data * random_list.pop()
+                    for i in range(num_parents):
+                        for child_param, parent_param in zip(child.parameters(), parents[i].parameters()):
+                            child_param.data = child_param.data + parent_param.data * random_list[i]
                     # add some noise
                     for param in child.parameters():
                         param.requires_grad = False
                         param.data = param.data * (1 + torch.randn_like(param) * 0.003)
                     new_population.append(child)
-            population = new_population
-            
+            population = new_population 
         return bset_score, best_generation, best_id
 
 
     def evaluate_fitness(self, chromosome):
-        # play the game with the chromosome
+        # play the game 
         score = play(chromosome)
         print("final score: ", score)
         return score

@@ -154,7 +154,7 @@ class Frames(object):
         (x, y, w, h) = (482, 229, 136, 23)
         # cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
         length_of_number = 15
-        space = [4,4,6,8,10,10,12,14]
+        space = [4,5,7,8,10,10,12,14]
         score = 0
         for i in range(8):
             number_img = img[y:y + h, x + (length_of_number) * i  + space[i] :x + (length_of_number ) * i + length_of_number + space[i]]
