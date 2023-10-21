@@ -1,4 +1,3 @@
-
 import cv2 as cv
 import time
 from play import play
@@ -20,12 +19,14 @@ class Main:
         )
         print(f"Best score: {score}, generation: {gen}, id: {id}")
         # log the result
-        with open("log.txt", "a") as f:
+        with open("./log/log.txt", "a") as f:
             f.write(f"Best score: {score}, generation: {gen}, id: {id}\n")
     
 if __name__ == '__main__':
     main = Main()
-    # model = loadModel()
-    # main.runningWithModel(model)
+    model = loadModel('./models/model_16_0_.pt')
+    main.runningWithModel(model)
+    
+    
     # main.runningWithModel(None)
-    main.runGeneAlo()
+    # main.runGeneAlo()

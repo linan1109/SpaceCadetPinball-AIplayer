@@ -57,7 +57,7 @@ class ModelController(object):
                     random_list = [random.random() for _ in range(num_parents)]
                     # softmax random_list to make it a probability distribution and sum to 1
                     random_list = torch.softmax(torch.tensor(random_list), dim=-1)
-                    # and the bigger the score, the bigger the probability to be selected
+                    # and the bigger the score, the bigger the probability to be selected///////////
                     random_list, _ = torch.sort(random_list, descending=True)                    
                     # for parent in parents:
                         # for child_param, parent_param in zip(child.parameters(), parent.parameters()):
