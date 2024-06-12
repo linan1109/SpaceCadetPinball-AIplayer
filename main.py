@@ -7,8 +7,8 @@ class Main:
     def __init__(self):
         pass
     
-    def runningWithModel(self, model=None):
-        play(model)
+    def runningWithModel(self, model_left=None, model_right=None):
+        play(model_left, model_right)
     
     def runGeneAlo(self):
         score, gen, id = ModelController().genetic_algorithm(
@@ -24,9 +24,13 @@ class Main:
     
 if __name__ == '__main__':
     main = Main()
-    model = loadModel('./models/model_16_0_.pt')
-    main.runningWithModel(model)
-    
-    
+    # run with model
+    # model_left = loadModel('./models/model_left_16_0_.pt')
+    # model_right = loadModel('./models/model_right_16_0_.pt')
+    # main.runningWithModel(model_left, model_right)
+
+    # run without model
     # main.runningWithModel(None)
-    # main.runGeneAlo()
+
+    # run genetic algorithm
+    main.runGeneAlo()

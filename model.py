@@ -3,21 +3,17 @@ import torch
 from torchrl.collectors import SyncDataCollector
 import random
 from play import play
-
-INPUT_SIZE = 4
-OUTPUT_SIZE = 2
-HIDDEN_SIZE = 256
-
+from SAC import Agent
 
 def loadModel(path="./models/model.pt"):
-    model = PlayModel(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+    model = Agent()
     model.load_state_dict(torch.load(path))
     return model
     
 
 class ModelController(object):
     def __init__(self) -> None:
-        self.model = PlayModel(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+        pass
         
     def genetic_algorithm(self, num_generations=50, population_size=8, num_best_players=5, num_parents=3):
         population = self.initialize_population(population_size)
@@ -26,8 +22,8 @@ class ModelController(object):
         best_id = 0
         for generation in range(num_generations):
             score_list = []
-            for chromosome in population:
-                score = self.evaluate_fitness(chromosome)
+            for (chromosome_left, chromosome_right) in population:
+                score = self.evaluate_fitness(chromosome_left, chromosome_right)
                 score_list.append(score)
             # sort the index by their scores descendingly
             score_list, indexs = zip(*sorted(zip(score_list, range(len(score_list))), reverse=True))
@@ -35,7 +31,8 @@ class ModelController(object):
             
             # save models and score
             for i in range(num_best_players):
-                torch.save(population[i].state_dict(), "./models/model_" + str(generation) + "_" + str(i) + "_" + ".pt")
+                torch.save(population[i][0].state_dict(), "./models/model_left_" + str(generation) + "_" + str(i) + "_" + ".pt")
+                torch.save(population[i][1].state_dict(), "./models/model_right_" + str(generation) + "_" + str(i) + "_" + ".pt")
                 with open("./log/scores.txt", "a") as f:
                     f.write("./models/model_" + str(generation) + "_" + str(i) + ":" + str(score_list[i]) + "\n")
                 if score_list[i] > bset_score:
@@ -46,46 +43,57 @@ class ModelController(object):
             # make new chromosomes
             for _ in range(population_size):
                 new_population = []
+                # for both left and right
                 # create new chromosomes
                 for _ in range(population_size):
                     # randomly select parents
                     parents = self.select_parents(population, num_parents)
-                    child = self.create_chromosome()
-                    for param in child.parameters():
+                    child_left = self.create_chromosome()
+                    child_right = self.create_chromosome()
+                    for param in child_left.parameters():
                         param.requires_grad = False
                         param.data = torch.zeros_like(param)
+                    for param in child_right.parameters():
+                        param.requires_grad = False
+                        param.data = torch.zeros_like(param)
+
                     random_list = [random.random() for _ in range(num_parents)]
                     # softmax random_list to make it a probability distribution and sum to 1
                     random_list = torch.softmax(torch.tensor(random_list), dim=-1)
                     # and the bigger the score, the bigger the probability to be selected///////////
-                    random_list, _ = torch.sort(random_list, descending=True)                    
+                    random_list, _ = torch.sort(random_list, descending=True)
                     # for parent in parents:
                         # for child_param, parent_param in zip(child.parameters(), parent.parameters()):
                             # child_param.data = child_param.data + parent_param.data * random_list.pop()
                     for i in range(num_parents):
-                        for child_param, parent_param in zip(child.parameters(), parents[i].parameters()):
+                        for child_param, parent_param in zip(child_left.parameters(), parents[i].parameters()):
+                            child_param.data = child_param.data + parent_param.data * random_list[i]
+                        for child_param, parent_param in zip(child_right.parameters(), parents[i].parameters()):
                             child_param.data = child_param.data + parent_param.data * random_list[i]
                     # add some noise
-                    for param in child.parameters():
+                    for param in child_left.parameters():
                         param.requires_grad = False
                         param.data = param.data * (1 + torch.randn_like(param) * 0.003)
-                    new_population.append(child)
+                    for param in child_right.parameters():
+                        param.requires_grad = False
+                        param.data = param.data * (1 + torch.randn_like(param) * 0.003)
+                    new_population.append((child_left, child_right))
             population = new_population 
         return bset_score, best_generation, best_id
 
 
-    def evaluate_fitness(self, chromosome):
+    def evaluate_fitness(self, chromosome_left, chromosome_right):
         # play the game 
-        score = play(chromosome)
+        score = play(chromosome_left, chromosome_right)
         print("final score: ", score)
         return score
     
     def initialize_population(self, population_size):
-        return [self.create_chromosome() for _ in range(population_size)]
+        return [(self.create_chromosome(), self.create_chromosome()) for _ in range(population_size)]
     
     def create_chromosome(self):
         # create a chromosome with random weights
-        model = PlayModel(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+        model = Agent()
         for param in model.parameters():
             param.requires_grad = False
             param.data = torch.randn_like(param) * 0.1
@@ -97,25 +105,3 @@ class ModelController(object):
             parent = random.choice(population)
             parents.append(parent)
         return parents
-
-class PlayModel(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
-        super(PlayModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size, output_size)
-
-    def forward(self, x):
-        out = torch.relu(self.fc1(x))
-        out = torch.relu(self.fc2(out))
-        out = torch.relu(self.fc3(out))
-        out = self.fc4(out)
-        # output as two probabilities for the two actions
-        out = torch.softmax(out, dim=-1)
-        return out
-    
-    def predict(self, x, y, vx, vy):
-        # predict the action
-        out = self.forward(torch.tensor([x, y, vx, vy], dtype=torch.float32))
-        return out[0].item(), out[1].item()
