@@ -14,10 +14,6 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class ReplayBuffer():
-    '''
-    This class implements a replay buffer for storing transitions. Upon every transition,
-    it saves data into a buffer for later learning, which is later sampled for training the agent.
-    '''
     def __init__(self, min_size, max_size, device):
         self.buffer = deque(maxlen=max_size)
         self.device = device
@@ -55,10 +51,7 @@ class ReplayBuffer():
         return self.size() >= self.min_size
 
 class NeuralNetwork(nn.Module):
-    '''
-    This class implements a neural network with a variable number of hidden layers and hidden units.
-    You may use this function to parametrize your policy and critic networks.
-    '''
+
     def __init__(self, input_dim: int, output_dim: int, hidden_size: int,
                  hidden_layers: int, hidden_activation,
                  output_activation):
@@ -93,9 +86,6 @@ class Actor:
         self.setup_actor()
 
     def setup_actor(self):
-        '''
-        This function sets up the actor network in the Actor class.
-        '''
         self._net = NeuralNetwork(self.state_dim, 1, self.hidden_size, self.hidden_layers - 1, nn.ReLU(), nn.Tanh())
         self._target_net = NeuralNetwork(self.state_dim, 1, self.hidden_size, self.hidden_layers - 1, nn.ReLU(),
                                          nn.Tanh())
@@ -130,10 +120,6 @@ class Critic:
 
 
 class TrainableParameter:
-    '''
-    This class could be used to define a trainable parameter in your method. You could find it
-    useful if you try to implement the entropy temerature parameter for SAC algorithm.
-    '''
 
     def __init__(self, init_param: float, lr_param: float,
                  train_param: bool, device: torch.device = torch.device('cpu')):
@@ -173,12 +159,6 @@ class Agent:
         self._target_entropy = -1 * self.action_dim
 
     def get_action(self, s: np.ndarray, train: bool) -> np.ndarray:
-        """
-        :param s: np.ndarray, state of the pendulum. shape (3, )
-        :param train: boolean to indicate if you are in eval or train mode.
-                    You can find it useful if you want to sample from deterministic policy.
-        :return: np.ndarray,, action to apply on the environment, shape (1,)
-        """
 
         if train:
             # sample from policy
@@ -200,12 +180,7 @@ class Agent:
         return action
 
     def get_action_prob(self, s: np.ndarray, train: bool) -> np.ndarray:
-        """
-        :param s: np.ndarray, state of the pendulum. shape (3, )
-        :param train: boolean to indicate if you are in eval or train mode.
-                    You can find it useful if you want to sample from deterministic policy.
-        :return: np.ndarray,, action to apply on the environment, shape (1,)
-        """
+
 
         if train:
             # sample from policy
@@ -225,26 +200,12 @@ class Agent:
 
     @staticmethod
     def run_gradient_update_step(object: Union[Actor, Critic], loss: torch.Tensor):
-        '''
-        This function takes in a object containing trainable parameters and an optimizer,
-        and using a given loss, runs one step of gradient update. If you set up trainable parameters
-        and optimizer inside the object, you could find this function useful while training.
-        :param object: object containing trainable parameters and an optimizer
-        '''
         object.optimizer.zero_grad()
         loss.mean().backward()
         object.optimizer.step()
 
     def critic_target_update(self, base_net: NeuralNetwork, target_net: NeuralNetwork,
                              tau: float, soft_update: bool):
-        '''
-        This method updates the target network parameters using the source network parameters.
-        If soft_update is True, then perform a soft update, otherwise a hard update (copy).
-        :param base_net: source network
-        :param target_net: target network
-        :param tau: soft update parameter
-        :param soft_update: boolean to indicate whether to perform a soft update or not
-        '''
         for param_target, param in zip(target_net.parameters(), base_net.parameters()):
             if soft_update:
                 param_target.data.copy_(param_target.data * (1.0 - tau) + param.data * tau)
@@ -252,11 +213,6 @@ class Agent:
                 param_target.data.copy_(param.data)
 
     def train_agent(self):
-        '''
-        This function represents one training iteration for the agent. It samples a batch
-        from the replay buffer,and then updates the policy and critic networks
-        using the sampled batch.
-        '''
 
         # Batch sampling
         for i in range(50):
